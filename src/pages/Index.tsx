@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { businesses as initialBusinesses } from "@/data/businesses";
 import type { Business } from "@/data/businesses";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useReviews } from "@/hooks/useReviews";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import CategoriesGrid from "@/components/CategoriesGrid";
@@ -11,18 +13,28 @@ import BusinessCard from "@/components/BusinessCard";
 import BusinessDetail from "@/components/BusinessDetail";
 import AdminPanel from "@/components/AdminPanel";
 import Footer from "@/components/Footer";
+import SavedBusinesses from "@/pages/SavedBusinesses";
+
+type View = "home" | "detail" | "admin" | "saved";
 
 const Index = () => {
   const [allBusinesses, setAllBusinesses] = useState<Business[]>(initialBusinesses);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedArea, setSelectedArea] = useState<string | null>(null);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [view, setView] = useState<View>("home");
+
+  const { favorites, toggle: toggleFavorite, isFavorite } = useFavorites();
+  const { addReview, getReviews } = useReviews();
 
   const filteredBusinesses = useMemo(() => {
     let result = allBusinesses;
     if (selectedCategory) {
       result = result.filter((b) => b.category === selectedCategory);
+    }
+    if (selectedArea) {
+      result = result.filter((b) => b.area === selectedArea);
     }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -34,7 +46,7 @@ const Index = () => {
       );
     }
     return result;
-  }, [allBusinesses, searchQuery, selectedCategory]);
+  }, [allBusinesses, searchQuery, selectedCategory, selectedArea]);
 
   const selectedBusiness = allBusinesses.find((b) => b.id === selectedBusinessId);
 
@@ -42,21 +54,25 @@ const Index = () => {
     setSearchQuery(query);
     setSelectedCategory(null);
     setSelectedBusinessId(null);
+    setView("home");
   };
 
   const handleCategorySelect = (catId: string) => {
     setSelectedCategory(catId);
     setSearchQuery("");
     setSelectedBusinessId(null);
+    setView("home");
   };
 
   const handleViewDetails = (id: string) => {
     setSelectedBusinessId(id);
+    setView("detail");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleBack = () => {
     setSelectedBusinessId(null);
+    setView("home");
   };
 
   const handleToggleFeatured = (id: string) => {
@@ -69,25 +85,64 @@ const Index = () => {
     setAllBusinesses((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
   };
 
+  const showSearchResults = searchQuery || selectedCategory || selectedArea;
+
   // Detail view
-  if (selectedBusiness) {
+  if (view === "detail" && selectedBusiness) {
     return (
       <>
-        <Navbar onAdminToggle={() => setIsAdmin(!isAdmin)} isAdmin={isAdmin} />
+        <Navbar
+          onAdminToggle={() => setView("admin")}
+          isAdmin={false}
+          onSavedClick={() => setView("saved")}
+          savedCount={favorites.length}
+        />
         <div className="pt-14 sm:pt-16">
-          <BusinessDetail business={selectedBusiness} onBack={handleBack} />
+          <BusinessDetail
+            business={selectedBusiness}
+            onBack={handleBack}
+            reviews={getReviews(selectedBusiness.id)}
+            onAddReview={addReview}
+          />
         </div>
       </>
     );
   }
 
-  const showSearchResults = searchQuery || selectedCategory;
+  // Saved view
+  if (view === "saved") {
+    return (
+      <>
+        <Navbar
+          onAdminToggle={() => setView("admin")}
+          isAdmin={false}
+          onSavedClick={() => setView("saved")}
+          savedCount={favorites.length}
+        />
+        <div className="pt-14 sm:pt-16">
+          <SavedBusinesses
+            businesses={allBusinesses}
+            favorites={favorites}
+            onToggleFavorite={toggleFavorite}
+            isFavorite={isFavorite}
+            onViewDetails={handleViewDetails}
+            onBack={handleBack}
+          />
+        </div>
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar onAdminToggle={() => setIsAdmin(!isAdmin)} isAdmin={isAdmin} />
+      <Navbar
+        onAdminToggle={() => setView(view === "admin" ? "home" : "admin")}
+        isAdmin={view === "admin"}
+        onSavedClick={() => setView("saved")}
+        savedCount={favorites.length}
+      />
 
-      {isAdmin ? (
+      {view === "admin" ? (
         <div className="pt-14 sm:pt-16">
           <AdminPanel
             businesses={allBusinesses}
@@ -97,7 +152,12 @@ const Index = () => {
         </div>
       ) : (
         <>
-          <HeroSection onSearch={handleSearch} />
+          <HeroSection
+            onSearch={handleSearch}
+            onSelectBusiness={handleViewDetails}
+            selectedArea={selectedArea}
+            onAreaChange={setSelectedArea}
+          />
 
           {showSearchResults ? (
             <section className="py-12">
@@ -115,9 +175,14 @@ const Index = () => {
                         for "{searchQuery}"
                       </span>
                     )}
+                    {selectedArea && (
+                      <span className="ml-2 text-base font-normal text-muted-foreground">
+                        in {selectedArea}
+                      </span>
+                    )}
                   </h2>
                   <button
-                    onClick={() => { setSearchQuery(""); setSelectedCategory(null); }}
+                    onClick={() => { setSearchQuery(""); setSelectedCategory(null); setSelectedArea(null); }}
                     className="text-sm font-medium text-primary hover:underline"
                   >
                     Clear filters
@@ -125,7 +190,13 @@ const Index = () => {
                 </div>
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {filteredBusinesses.map((b) => (
-                    <BusinessCard key={b.id} business={b} onViewDetails={handleViewDetails} />
+                    <BusinessCard
+                      key={b.id}
+                      business={b}
+                      onViewDetails={handleViewDetails}
+                      isFavorite={isFavorite(b.id)}
+                      onToggleFavorite={toggleFavorite}
+                    />
                   ))}
                 </div>
                 {filteredBusinesses.length === 0 && (
@@ -138,7 +209,11 @@ const Index = () => {
           ) : (
             <>
               <CategoriesGrid onCategorySelect={handleCategorySelect} />
-              <FeaturedSection onViewDetails={handleViewDetails} />
+              <FeaturedSection
+                onViewDetails={handleViewDetails}
+                isFavorite={isFavorite}
+                onToggleFavorite={toggleFavorite}
+              />
               <OffersSection onViewDetails={handleViewDetails} />
               <TrendingSection onViewDetails={handleViewDetails} />
             </>
