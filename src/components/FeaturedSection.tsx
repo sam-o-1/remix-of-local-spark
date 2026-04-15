@@ -3,9 +3,11 @@ import BusinessCard from "./BusinessCard";
 
 interface FeaturedSectionProps {
   onViewDetails: (id: string) => void;
+  isFavorite: (id: string) => boolean;
+  onToggleFavorite: (id: string) => void;
 }
 
-const FeaturedSection = ({ onViewDetails }: FeaturedSectionProps) => {
+const FeaturedSection = ({ onViewDetails, isFavorite, onToggleFavorite }: FeaturedSectionProps) => {
   const featured = businesses.filter((b) => b.isFeatured);
 
   return (
@@ -22,7 +24,13 @@ const FeaturedSection = ({ onViewDetails }: FeaturedSectionProps) => {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {featured.map((b) => (
-            <BusinessCard key={b.id} business={b} onViewDetails={onViewDetails} />
+            <BusinessCard
+              key={b.id}
+              business={b}
+              onViewDetails={onViewDetails}
+              isFavorite={isFavorite(b.id)}
+              onToggleFavorite={onToggleFavorite}
+            />
           ))}
         </div>
       </div>

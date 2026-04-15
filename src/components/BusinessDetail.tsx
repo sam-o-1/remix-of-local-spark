@@ -2,19 +2,19 @@ import { Star, MapPin, Phone, MessageCircle, Clock, ArrowLeft, ExternalLink } fr
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import type { Business } from "@/data/businesses";
-import { reviews } from "@/data/businesses";
+import type { Business, Review } from "@/data/businesses";
+import ReviewForm from "./ReviewForm";
 
 interface BusinessDetailProps {
   business: Business;
   onBack: () => void;
+  reviews: Review[];
+  onAddReview: (review: { businessId: string; author: string; rating: number; comment: string }) => void;
 }
 
-const BusinessDetail = ({ business, onBack }: BusinessDetailProps) => {
-  const bizReviews = reviews.filter((r) => r.businessId === business.id);
-
+const BusinessDetail = ({ business, onBack, reviews, onAddReview }: BusinessDetailProps) => {
   const whatsappUrl = `https://wa.me/${business.whatsapp}?text=${encodeURIComponent(
-    `Hi! I found ${business.name} on LocalBiz. I'd like to inquire about your services. Could you share more details?`
+    `Hi! I found ${business.name} on LBPP. I'd like to inquire about your services. Could you share more details?`
   )}`;
 
   return (
@@ -55,7 +55,7 @@ const BusinessDetail = ({ business, onBack }: BusinessDetailProps) => {
           </div>
 
           {business.offers && (
-            <div className="mb-6 rounded-lg bg-destructive/5 border border-destructive/20 p-4">
+            <div className="mb-6 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
               <p className="font-semibold text-destructive">🔥 {business.offers}</p>
             </div>
           )}
@@ -98,20 +98,32 @@ const BusinessDetail = ({ business, onBack }: BusinessDetailProps) => {
             <p className="text-sm font-medium text-foreground"><MapPin className="mr-1 inline h-4 w-4" />{business.address}</p>
           </div>
 
+          <Separator className="my-6" />
+
+          {/* Write Review */}
+          <div className="mb-8">
+            <ReviewForm businessId={business.id} onSubmit={onAddReview} />
+          </div>
+
           {/* Reviews */}
           <div>
-            <h3 className="mb-4 text-lg font-bold">Reviews ({bizReviews.length})</h3>
-            {bizReviews.length === 0 ? (
+            <h3 className="mb-4 text-lg font-bold">Reviews ({reviews.length})</h3>
+            {reviews.length === 0 ? (
               <p className="text-muted-foreground">No reviews yet. Be the first!</p>
             ) : (
               <div className="space-y-4">
-                {bizReviews.map((r) => (
+                {reviews.map((r) => (
                   <div key={r.id} className="rounded-lg border border-border bg-background p-4">
                     <div className="mb-2 flex items-center justify-between">
                       <span className="font-semibold">{r.author}</span>
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: r.rating }).map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-accent text-accent" />
+                      <div className="flex items-center gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-3.5 w-3.5 ${
+                              i < r.rating ? "fill-accent text-accent" : "text-muted-foreground/20"
+                            }`}
+                          />
                         ))}
                       </div>
                     </div>

@@ -1,19 +1,16 @@
-import { useState } from "react";
-import { Search, MapPin } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SearchBar from "./SearchBar";
+import LocationFilter from "./LocationFilter";
 
 interface HeroSectionProps {
   onSearch: (query: string) => void;
+  onSelectBusiness: (id: string) => void;
+  selectedArea: string | null;
+  onAreaChange: (area: string | null) => void;
 }
 
-const HeroSection = ({ onSearch }: HeroSectionProps) => {
-  const [query, setQuery] = useState("");
-
-  const handleSearch = () => {
-    onSearch(query);
-  };
-
+const HeroSection = ({ onSearch, onSelectBusiness, selectedArea, onAreaChange }: HeroSectionProps) => {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-accent px-4 pb-16 pt-24 sm:pb-20 sm:pt-32">
       {/* Background pattern */}
@@ -35,25 +32,12 @@ const HeroSection = ({ onSearch }: HeroSectionProps) => {
           Explore top-rated restaurants, salons, clinics & more in your area. Exclusive deals, real reviews, and instant contact.
         </p>
 
-        {/* Search bar */}
-        <div className="mx-auto flex max-w-2xl flex-col gap-3 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Search businesses, categories, areas..."
-              className="h-12 border-0 bg-card pl-11 text-base shadow-hero placeholder:text-muted-foreground/60 focus-visible:ring-accent sm:h-14 sm:text-lg"
-            />
-          </div>
-          <Button
-            onClick={handleSearch}
-            className="h-12 bg-accent px-8 text-base font-semibold text-accent-foreground shadow-hero hover:bg-accent/90 sm:h-14"
-          >
-            <MapPin className="mr-2 h-5 w-5" />
-            Search
-          </Button>
+        {/* Search bar with auto-suggestions */}
+        <SearchBar onSearch={onSearch} onSelectBusiness={onSelectBusiness} />
+
+        {/* Location filter */}
+        <div className="mx-auto mt-5 max-w-2xl rounded-xl bg-card/90 px-4 py-3 shadow-card backdrop-blur-sm">
+          <LocationFilter selectedArea={selectedArea} onAreaChange={onAreaChange} />
         </div>
 
         <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm text-primary-foreground/70">
@@ -61,7 +45,7 @@ const HeroSection = ({ onSearch }: HeroSectionProps) => {
           {["Restaurants", "Salons", "Clinics", "Gyms"].map((tag) => (
             <button
               key={tag}
-              onClick={() => { setQuery(tag); onSearch(tag); }}
+              onClick={() => onSearch(tag)}
               className="rounded-full bg-primary-foreground/10 px-3 py-1 text-primary-foreground/90 transition hover:bg-primary-foreground/20"
             >
               {tag}

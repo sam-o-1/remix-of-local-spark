@@ -1,4 +1,4 @@
-import { Star, MapPin, Phone, MessageCircle } from "lucide-react";
+import { Star, MapPin, Phone, MessageCircle, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Business } from "@/data/businesses";
@@ -6,11 +6,13 @@ import type { Business } from "@/data/businesses";
 interface BusinessCardProps {
   business: Business;
   onViewDetails: (id: string) => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: string) => void;
 }
 
-const BusinessCard = ({ business, onViewDetails }: BusinessCardProps) => {
+const BusinessCard = ({ business, onViewDetails, isFavorite, onToggleFavorite }: BusinessCardProps) => {
   const whatsappUrl = `https://wa.me/${business.whatsapp}?text=${encodeURIComponent(
-    `Hi! I found ${business.name} on LocalBiz and I'd like to know more about your services.`
+    `Hi! I found ${business.name} on LBPP and I'd like to know more about your services.`
   )}`;
 
   return (
@@ -32,6 +34,18 @@ const BusinessCard = ({ business, onViewDetails }: BusinessCardProps) => {
           <Badge className="absolute right-3 top-3 bg-destructive text-destructive-foreground shadow-md">
             🔥 Offer
           </Badge>
+        )}
+        {onToggleFavorite && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(business.id); }}
+            className="absolute right-3 bottom-3 flex h-9 w-9 items-center justify-center rounded-full bg-card/80 backdrop-blur-sm transition hover:bg-card"
+          >
+            <Heart
+              className={`h-5 w-5 transition-colors ${
+                isFavorite ? "fill-destructive text-destructive" : "text-muted-foreground"
+              }`}
+            />
+          </button>
         )}
       </div>
 
@@ -69,30 +83,15 @@ const BusinessCard = ({ business, onViewDetails }: BusinessCardProps) => {
 
         {/* Actions */}
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1"
-            onClick={() => onViewDetails(business.id)}
-          >
+          <Button size="sm" variant="outline" className="flex-1" onClick={() => onViewDetails(business.id)}>
             View Details
           </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-accent hover:bg-accent/10 hover:text-accent"
-            asChild
-          >
+          <Button size="sm" variant="ghost" className="text-accent hover:bg-accent/10 hover:text-accent" asChild>
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
               <MessageCircle className="h-4 w-4" />
             </a>
           </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-primary hover:bg-primary/10 hover:text-primary"
-            asChild
-          >
+          <Button size="sm" variant="ghost" className="text-primary hover:bg-primary/10 hover:text-primary" asChild>
             <a href={`tel:${business.phone}`}>
               <Phone className="h-4 w-4" />
             </a>
