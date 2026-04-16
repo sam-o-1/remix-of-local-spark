@@ -1,4 +1,4 @@
-import { Star, MapPin, Phone, MessageCircle, Heart } from "lucide-react";
+import { Star, MapPin, Phone, MessageCircle, Heart, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Business } from "@/data/businesses";
@@ -8,12 +8,15 @@ interface BusinessCardProps {
   onViewDetails: (id: string) => void;
   isFavorite?: boolean;
   onToggleFavorite?: (id: string) => void;
+  rank?: number;
 }
 
-const BusinessCard = ({ business, onViewDetails, isFavorite, onToggleFavorite }: BusinessCardProps) => {
+const BusinessCard = ({ business, onViewDetails, isFavorite, onToggleFavorite, rank }: BusinessCardProps) => {
   const whatsappUrl = `https://wa.me/${business.whatsapp}?text=${encodeURIComponent(
     `Hi! I found ${business.name} on LBPP and I'd like to know more about your services.`
   )}`;
+
+  const isPopular = business.views >= 3000;
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover">
@@ -25,15 +28,25 @@ const BusinessCard = ({ business, onViewDetails, isFavorite, onToggleFavorite }:
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />
-        {business.isFeatured && (
-          <Badge className="absolute left-3 top-3 bg-accent text-accent-foreground shadow-md">
-            ⭐ Featured
-          </Badge>
-        )}
+        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+          {business.isFeatured && (
+            <Badge className="bg-accent text-accent-foreground shadow-md">⭐ Featured</Badge>
+          )}
+          {isPopular && (
+            <Badge className="gap-1 bg-primary text-primary-foreground shadow-md">
+              <Trophy className="h-3 w-3" /> Popular in Solapur
+            </Badge>
+          )}
+        </div>
         {business.offers && (
           <Badge className="absolute right-3 top-3 bg-destructive text-destructive-foreground shadow-md">
             🔥 Offer
           </Badge>
+        )}
+        {rank && (
+          <div className="absolute bottom-3 left-3 flex h-8 w-8 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground shadow-md text-sm">
+            #{rank}
+          </div>
         )}
         {onToggleFavorite && (
           <button
