@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import CategoriesGrid from "@/components/CategoriesGrid";
 import FeaturedSection from "@/components/FeaturedSection";
+import FamousInSolapur from "@/components/FamousInSolapur";
 import TrendingSection from "@/components/TrendingSection";
 import OffersSection from "@/components/OffersSection";
 import BusinessCard from "@/components/BusinessCard";
@@ -21,7 +22,6 @@ const Index = () => {
   const [allBusinesses, setAllBusinesses] = useState<Business[]>(initialBusinesses);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedArea, setSelectedArea] = useState<string | null>(null);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
   const [view, setView] = useState<View>("home");
 
@@ -33,9 +33,6 @@ const Index = () => {
     if (selectedCategory) {
       result = result.filter((b) => b.category === selectedCategory);
     }
-    if (selectedArea) {
-      result = result.filter((b) => b.area === selectedArea);
-    }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -46,7 +43,7 @@ const Index = () => {
       );
     }
     return result;
-  }, [allBusinesses, searchQuery, selectedCategory, selectedArea]);
+  }, [allBusinesses, searchQuery, selectedCategory]);
 
   const selectedBusiness = allBusinesses.find((b) => b.id === selectedBusinessId);
 
@@ -85,49 +82,25 @@ const Index = () => {
     setAllBusinesses((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
   };
 
-  const showSearchResults = searchQuery || selectedCategory || selectedArea;
+  const showSearchResults = searchQuery || selectedCategory;
 
-  // Detail view
   if (view === "detail" && selectedBusiness) {
     return (
       <>
-        <Navbar
-          onAdminToggle={() => setView("admin")}
-          isAdmin={false}
-          onSavedClick={() => setView("saved")}
-          savedCount={favorites.length}
-        />
+        <Navbar onAdminToggle={() => setView("admin")} isAdmin={false} onSavedClick={() => setView("saved")} savedCount={favorites.length} />
         <div className="pt-14 sm:pt-16">
-          <BusinessDetail
-            business={selectedBusiness}
-            onBack={handleBack}
-            reviews={getReviews(selectedBusiness.id)}
-            onAddReview={addReview}
-          />
+          <BusinessDetail business={selectedBusiness} onBack={handleBack} reviews={getReviews(selectedBusiness.id)} onAddReview={addReview} />
         </div>
       </>
     );
   }
 
-  // Saved view
   if (view === "saved") {
     return (
       <>
-        <Navbar
-          onAdminToggle={() => setView("admin")}
-          isAdmin={false}
-          onSavedClick={() => setView("saved")}
-          savedCount={favorites.length}
-        />
+        <Navbar onAdminToggle={() => setView("admin")} isAdmin={false} onSavedClick={() => setView("saved")} savedCount={favorites.length} />
         <div className="pt-14 sm:pt-16">
-          <SavedBusinesses
-            businesses={allBusinesses}
-            favorites={favorites}
-            onToggleFavorite={toggleFavorite}
-            isFavorite={isFavorite}
-            onViewDetails={handleViewDetails}
-            onBack={handleBack}
-          />
+          <SavedBusinesses businesses={allBusinesses} favorites={favorites} onToggleFavorite={toggleFavorite} isFavorite={isFavorite} onViewDetails={handleViewDetails} onBack={handleBack} />
         </div>
       </>
     );
@@ -135,29 +108,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar
-        onAdminToggle={() => setView(view === "admin" ? "home" : "admin")}
-        isAdmin={view === "admin"}
-        onSavedClick={() => setView("saved")}
-        savedCount={favorites.length}
-      />
+      <Navbar onAdminToggle={() => setView(view === "admin" ? "home" : "admin")} isAdmin={view === "admin"} onSavedClick={() => setView("saved")} savedCount={favorites.length} />
 
       {view === "admin" ? (
         <div className="pt-14 sm:pt-16">
-          <AdminPanel
-            businesses={allBusinesses}
-            onToggleFeatured={handleToggleFeatured}
-            onUpdateBusiness={handleUpdateBusiness}
-          />
+          <AdminPanel businesses={allBusinesses} onToggleFeatured={handleToggleFeatured} onUpdateBusiness={handleUpdateBusiness} />
         </div>
       ) : (
         <>
-          <HeroSection
-            onSearch={handleSearch}
-            onSelectBusiness={handleViewDetails}
-            selectedArea={selectedArea}
-            onAreaChange={setSelectedArea}
-          />
+          <HeroSection onSearch={handleSearch} onSelectBusiness={handleViewDetails} />
 
           {showSearchResults ? (
             <section className="py-12">
@@ -166,54 +125,31 @@ const Index = () => {
                   <h2 className="text-xl font-bold">
                     {filteredBusinesses.length} result{filteredBusinesses.length !== 1 && "s"}
                     {selectedCategory && (
-                      <span className="ml-2 text-base font-normal text-muted-foreground">
-                        in {selectedCategory.replace("-", " ")}
-                      </span>
+                      <span className="ml-2 text-base font-normal text-muted-foreground">in {selectedCategory.replace("-", " ")}</span>
                     )}
                     {searchQuery && (
-                      <span className="ml-2 text-base font-normal text-muted-foreground">
-                        for "{searchQuery}"
-                      </span>
-                    )}
-                    {selectedArea && (
-                      <span className="ml-2 text-base font-normal text-muted-foreground">
-                        in {selectedArea}
-                      </span>
+                      <span className="ml-2 text-base font-normal text-muted-foreground">for "{searchQuery}"</span>
                     )}
                   </h2>
-                  <button
-                    onClick={() => { setSearchQuery(""); setSelectedCategory(null); setSelectedArea(null); }}
-                    className="text-sm font-medium text-primary hover:underline"
-                  >
+                  <button onClick={() => { setSearchQuery(""); setSelectedCategory(null); }} className="text-sm font-medium text-primary hover:underline">
                     Clear filters
                   </button>
                 </div>
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {filteredBusinesses.map((b) => (
-                    <BusinessCard
-                      key={b.id}
-                      business={b}
-                      onViewDetails={handleViewDetails}
-                      isFavorite={isFavorite(b.id)}
-                      onToggleFavorite={toggleFavorite}
-                    />
+                    <BusinessCard key={b.id} business={b} onViewDetails={handleViewDetails} isFavorite={isFavorite(b.id)} onToggleFavorite={toggleFavorite} />
                   ))}
                 </div>
                 {filteredBusinesses.length === 0 && (
-                  <p className="py-16 text-center text-muted-foreground">
-                    No businesses found. Try a different search.
-                  </p>
+                  <p className="py-16 text-center text-muted-foreground">No businesses found. Try a different search.</p>
                 )}
               </div>
             </section>
           ) : (
             <>
               <CategoriesGrid onCategorySelect={handleCategorySelect} />
-              <FeaturedSection
-                onViewDetails={handleViewDetails}
-                isFavorite={isFavorite}
-                onToggleFavorite={toggleFavorite}
-              />
+              <FamousInSolapur onViewDetails={handleViewDetails} />
+              <FeaturedSection onViewDetails={handleViewDetails} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} />
               <OffersSection onViewDetails={handleViewDetails} />
               <TrendingSection onViewDetails={handleViewDetails} />
             </>
