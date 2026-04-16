@@ -28,8 +28,9 @@ const Index = () => {
   const { favorites, toggle: toggleFavorite, isFavorite } = useFavorites();
   const { addReview, getReviews } = useReviews();
 
+  // Sort by popularity (views) by default, then apply filters
   const filteredBusinesses = useMemo(() => {
-    let result = allBusinesses;
+    let result = [...allBusinesses].sort((a, b) => b.views - a.views);
     if (selectedCategory) {
       result = result.filter((b) => b.category === selectedCategory);
     }
@@ -135,9 +136,10 @@ const Index = () => {
                     Clear filters
                   </button>
                 </div>
+                <p className="mb-4 text-xs text-muted-foreground">📊 Sorted by popularity</p>
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {filteredBusinesses.map((b) => (
-                    <BusinessCard key={b.id} business={b} onViewDetails={handleViewDetails} isFavorite={isFavorite(b.id)} onToggleFavorite={toggleFavorite} />
+                  {filteredBusinesses.map((b, i) => (
+                    <BusinessCard key={b.id} business={b} onViewDetails={handleViewDetails} isFavorite={isFavorite(b.id)} onToggleFavorite={toggleFavorite} rank={i + 1} />
                   ))}
                 </div>
                 {filteredBusinesses.length === 0 && (

@@ -1,9 +1,10 @@
-import { Star, MapPin, Phone, MessageCircle, Clock, ArrowLeft, ExternalLink } from "lucide-react";
+import { Star, MapPin, Phone, MessageCircle, Clock, ArrowLeft, ExternalLink, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { Business, Review } from "@/data/businesses";
 import ReviewForm from "./ReviewForm";
+import InquiryForm from "./InquiryForm";
 
 interface BusinessDetailProps {
   business: Business;
@@ -17,9 +18,10 @@ const BusinessDetail = ({ business, onBack, reviews, onAddReview }: BusinessDeta
     `Hi! I found ${business.name} on LBPP. I'd like to inquire about your services. Could you share more details?`
   )}`;
 
+  const isPopular = business.views >= 3000;
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header image */}
       <div className="relative h-56 sm:h-72 md:h-80">
         <img src={business.image} alt={business.name} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
@@ -31,14 +33,20 @@ const BusinessDetail = ({ business, onBack, reviews, onAddReview }: BusinessDeta
         >
           <ArrowLeft className="mr-1 h-4 w-4" /> Back
         </Button>
-        {business.isFeatured && (
-          <Badge className="absolute right-4 top-4 bg-accent text-accent-foreground">⭐ Featured</Badge>
-        )}
+        <div className="absolute right-4 top-4 flex gap-2">
+          {business.isFeatured && (
+            <Badge className="bg-accent text-accent-foreground">⭐ Featured</Badge>
+          )}
+          {isPopular && (
+            <Badge className="gap-1 bg-primary text-primary-foreground">
+              <Trophy className="h-3 w-3" /> Popular in Solapur
+            </Badge>
+          )}
+        </div>
       </div>
 
       <div className="container -mt-12 pb-20 sm:-mt-16">
         <div className="rounded-xl border border-border bg-card p-5 shadow-hero sm:p-8">
-          {/* Title */}
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="mb-1 text-2xl font-extrabold sm:text-3xl">{business.name}</h1>
@@ -62,7 +70,6 @@ const BusinessDetail = ({ business, onBack, reviews, onAddReview }: BusinessDeta
 
           <p className="mb-6 leading-relaxed text-muted-foreground">{business.description}</p>
 
-          {/* Services */}
           <div className="mb-6">
             <h3 className="mb-3 text-lg font-bold">Services</h3>
             <div className="flex flex-wrap gap-2">
@@ -74,7 +81,6 @@ const BusinessDetail = ({ business, onBack, reviews, onAddReview }: BusinessDeta
 
           <Separator className="my-6" />
 
-          {/* Contact actions */}
           <div className="mb-6 grid gap-3 sm:grid-cols-3">
             <Button className="h-12 bg-accent text-accent-foreground hover:bg-accent/90" asChild>
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
@@ -93,9 +99,15 @@ const BusinessDetail = ({ business, onBack, reviews, onAddReview }: BusinessDeta
             </Button>
           </div>
 
-          {/* Address */}
           <div className="mb-8 rounded-lg bg-secondary p-4">
             <p className="text-sm font-medium text-foreground"><MapPin className="mr-1 inline h-4 w-4" />{business.address}</p>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Inquiry Form */}
+          <div className="mb-8">
+            <InquiryForm businessName={business.name} whatsapp={business.whatsapp} />
           </div>
 
           <Separator className="my-6" />

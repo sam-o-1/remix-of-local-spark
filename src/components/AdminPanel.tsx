@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Star, Edit, Eye, EyeOff } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Star, Edit, Eye, EyeOff, BarChart3, TrendingUp, Phone, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,19 @@ interface AdminPanelProps {
 const AdminPanel = ({ businesses, onToggleFeatured, onUpdateBusiness }: AdminPanelProps) => {
   const [editBiz, setEditBiz] = useState<Business | null>(null);
 
+  const stats = useMemo(() => {
+    const sorted = [...businesses].sort((a, b) => b.views - a.views);
+    const mostViewed = sorted[0];
+    const mostContacted = [...businesses].sort((a, b) => b.reviewCount - a.reviewCount)[0];
+    return {
+      total: businesses.length,
+      featured: businesses.filter((b) => b.isFeatured).length,
+      withOffers: businesses.filter((b) => b.offers).length,
+      mostViewed,
+      mostContacted,
+    };
+  }, [businesses]);
+
   const handleSave = () => {
     if (editBiz) {
       onUpdateBusiness(editBiz);
@@ -28,10 +41,55 @@ const AdminPanel = ({ businesses, onToggleFeatured, onUpdateBusiness }: AdminPan
     <section className="py-12">
       <div className="container">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold">Admin Panel</h2>
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-6 w-6 text-primary" />
+            <h2 className="text-2xl font-bold">Admin Panel</h2>
+          </div>
           <p className="text-muted-foreground">Manage businesses, toggle featured, edit details</p>
         </div>
 
+        {/* Stats Cards */}
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-card">
+            <div className="mb-2 flex items-center gap-2">
+              <Store className="h-5 w-5 text-primary" />
+              <span className="text-sm font-medium text-muted-foreground">Total Businesses</span>
+            </div>
+            <p className="text-3xl font-bold text-foreground">{stats.total}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{stats.featured} featured · {stats.withOffers} with offers</p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-5 shadow-card">
+            <div className="mb-2 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-accent" />
+              <span className="text-sm font-medium text-muted-foreground">Most Viewed</span>
+            </div>
+            <p className="text-lg font-bold text-foreground">{stats.mostViewed?.name}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{stats.mostViewed?.views.toLocaleString()} views</p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-5 shadow-card">
+            <div className="mb-2 flex items-center gap-2">
+              <Phone className="h-5 w-5 text-primary" />
+              <span className="text-sm font-medium text-muted-foreground">Most Contacted</span>
+            </div>
+            <p className="text-lg font-bold text-foreground">{stats.mostContacted?.name}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{stats.mostContacted?.reviewCount} reviews/contacts</p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-5 shadow-card">
+            <div className="mb-2 flex items-center gap-2">
+              <Star className="h-5 w-5 text-accent" />
+              <span className="text-sm font-medium text-muted-foreground">Avg Rating</span>
+            </div>
+            <p className="text-3xl font-bold text-foreground">
+              {(businesses.reduce((s, b) => s + b.rating, 0) / businesses.length).toFixed(1)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">Across all businesses</p>
+          </div>
+        </div>
+
+        {/* Business List */}
         <div className="space-y-3">
           {businesses.map((b) => (
             <div
@@ -41,16 +99,12 @@ const AdminPanel = ({ businesses, onToggleFeatured, onUpdateBusiness }: AdminPan
               <img src={b.image} alt={b.name} className="h-12 w-12 rounded-lg object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{b.name}</p>
-                <p className="text-sm text-muted-foreground">{b.area} · ⭐ {b.rating}</p>
+                <p className="text-sm text-muted-foreground">{b.area} · ⭐ {b.rating} · 👁 {b.views}</p>
               </div>
 
               {b.isFeatured && <Badge className="bg-accent text-accent-foreground">Featured</Badge>}
 
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onToggleFeatured(b.id)}
-              >
+              <Button size="sm" variant="outline" onClick={() => onToggleFeatured(b.id)}>
                 {b.isFeatured ? <EyeOff className="mr-1 h-4 w-4" /> : <Eye className="mr-1 h-4 w-4" />}
                 {b.isFeatured ? "Unfeature" : "Feature"}
               </Button>
