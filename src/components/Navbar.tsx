@@ -33,14 +33,15 @@ const Navbar = ({ onSavedClick, savedCount = 0 }: NavbarProps) => {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <MapPin className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="text-lg font-extrabold text-foreground">
-              LB<span className="text-accent">PP</span>
-            </span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-lg font-extrabold text-foreground">
+                Local<span className="text-accent">Biz</span>
+              </span>
+              <span className="hidden text-[10px] font-medium text-muted-foreground sm:block">
+                Currently available in Solapur
+              </span>
+            </div>
           </Link>
-          <div className="hidden items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground sm:flex">
-            <MapPin className="h-3 w-3 text-primary" />
-            Solapur, Maharashtra
-          </div>
         </div>
 
         <div className="flex items-center gap-2">
