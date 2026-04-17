@@ -69,13 +69,21 @@ const BusinessForm = ({ initial, onSaved, onCancel }: Props) => {
     }
     setSaving(true);
     try {
-      const payload = { ...parsed.data, image_url: imageUrl || null, owner_id: user.id };
+      const payload = {
+        name: parsed.data.name,
+        category: parsed.data.category,
+        location: parsed.data.location,
+        contact: parsed.data.contact,
+        description: parsed.data.description ?? null,
+        image_url: imageUrl || null,
+        owner_id: user.id,
+      };
       if (initial) {
         const { error } = await supabase.from("businesses").update(payload).eq("id", initial.id);
         if (error) throw error;
         toast({ title: "Business updated" });
       } else {
-        const { error } = await supabase.from("businesses").insert(payload);
+        const { error } = await supabase.from("businesses").insert([payload]);
         if (error) throw error;
         toast({ title: "Business added" });
       }
