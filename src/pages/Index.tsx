@@ -29,6 +29,7 @@ const Index = () => {
 
   const { favorites, toggle: toggleFavorite, isFavorite } = useFavorites();
   const { addReview, getReviews } = useReviews();
+  const { recent, addRecent } = useRecentlyViewed();
 
   const filteredBusinesses = useMemo(() => {
     let result = [...allBusinesses].sort((a, b) => b.views - a.views);
@@ -65,6 +66,7 @@ const Index = () => {
 
   const handleViewDetails = (id: string) => {
     setSelectedBusinessId(id);
+    addRecent(id);
     setView("detail");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -137,6 +139,7 @@ const Index = () => {
       ) : (
         <>
           <CategoriesGrid onCategorySelect={handleCategorySelect} />
+          <RecentlyViewed recentIds={recent} onViewDetails={handleViewDetails} />
           <FamousInSolapur onViewDetails={handleViewDetails} />
           <FeaturedSection onViewDetails={handleViewDetails} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} />
           <VendorBusinessGrid />
