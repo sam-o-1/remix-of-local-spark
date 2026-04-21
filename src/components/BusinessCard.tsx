@@ -1,6 +1,7 @@
-import { Star, MapPin, Phone, MessageCircle, Heart, Trophy } from "lucide-react";
+import { Star, MapPin, Phone, MessageCircle, Heart, Trophy, Share2, Navigation, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import type { Business } from "@/data/businesses";
 
 interface BusinessCardProps {
@@ -17,6 +18,35 @@ const BusinessCard = ({ business, onViewDetails, isFavorite, onToggleFavorite, r
   )}`;
 
   const isPopular = business.views >= 3000;
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareData = {
+      title: business.name,
+      text: `Check out ${business.name} on LocalBiz — ${business.area}, Solapur`,
+      url: `${window.location.origin}/?business=${business.id}`,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        toast.success("Link copied to clipboard!");
+      }
+    } catch {
+      /* user cancelled */
+    }
+  };
+
+  const handleCopyPhone = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(business.phone);
+    toast.success(`${business.phone} copied!`);
+  };
+
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+    business.address
+  )}`;
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover">
@@ -95,19 +125,30 @@ const BusinessCard = ({ business, onViewDetails, isFavorite, onToggleFavorite, r
         </p>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           <Button size="sm" variant="outline" className="flex-1" onClick={() => onViewDetails(business.id)}>
             View Details
           </Button>
-          <Button size="sm" variant="ghost" className="text-accent hover:bg-accent/10 hover:text-accent" asChild>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+          <Button size="sm" variant="ghost" title="WhatsApp" className="px-2 text-accent hover:bg-accent/10 hover:text-accent" asChild>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
               <MessageCircle className="h-4 w-4" />
             </a>
           </Button>
-          <Button size="sm" variant="ghost" className="text-primary hover:bg-primary/10 hover:text-primary" asChild>
-            <a href={`tel:${business.phone}`}>
+          <Button size="sm" variant="ghost" title="Call" className="px-2 text-primary hover:bg-primary/10 hover:text-primary" asChild>
+            <a href={`tel:${business.phone}`} onClick={(e) => e.stopPropagation()}>
               <Phone className="h-4 w-4" />
             </a>
+          </Button>
+          <Button size="sm" variant="ghost" title="Copy phone" className="px-2" onClick={handleCopyPhone}>
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant="ghost" title="Directions" className="px-2" asChild>
+            <a href={directionsUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+              <Navigation className="h-4 w-4" />
+            </a>
+          </Button>
+          <Button size="sm" variant="ghost" title="Share" className="px-2" onClick={handleShare}>
+            <Share2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
