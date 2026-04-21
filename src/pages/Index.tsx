@@ -13,8 +13,10 @@ import OffersSection from "@/components/OffersSection";
 import BusinessCard from "@/components/BusinessCard";
 import BusinessDetail from "@/components/BusinessDetail";
 import VendorBusinessGrid from "@/components/VendorBusinessGrid";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import Footer from "@/components/Footer";
 import SavedBusinesses from "@/pages/SavedBusinesses";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 
 type View = "home" | "detail" | "saved";
 
