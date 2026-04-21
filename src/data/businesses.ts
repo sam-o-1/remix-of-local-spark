@@ -36,6 +36,7 @@ export const categories = [
   { id: "fitness", name: "Fitness", icon: "💪", count: 18 },
   { id: "education", name: "Education", icon: "📚", count: 26 },
   { id: "home-services", name: "Home Services", icon: "🔧", count: 34 },
+  { id: "clothing", name: "Clothing", icon: "👕", count: 2 },
 ];
 
 export const businesses: Business[] = [
