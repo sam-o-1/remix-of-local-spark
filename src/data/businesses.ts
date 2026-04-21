@@ -580,6 +580,8 @@ export const businesses: Business[] = [
     openHours: "Open Now",
   },
 ];
+
+export const reviews: Review[] = [
   { id: "r1", businessId: "1", author: "Priya M.", rating: 5, comment: "Best Maharashtrian thali in Solapur! The shenga chutney is to die for.", date: "2024-03-15" },
   { id: "r2", businessId: "1", author: "Rahul S.", rating: 4, comment: "Great food, slightly crowded on weekends but totally worth the wait.", date: "2024-03-10" },
   { id: "r3", businessId: "2", author: "Anita K.", rating: 5, comment: "Best bridal makeup in Solapur. The team was so professional!", date: "2024-03-12" },
