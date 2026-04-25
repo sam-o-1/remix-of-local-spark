@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
-import { Phone, MapPin, Store } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Phone, MapPin, Store, BadgeCheck, Star } from "lucide-react";
 import { useDbBusinesses } from "@/hooks/useDbBusinesses";
 
 interface Props {
@@ -38,7 +39,21 @@ const VendorBusinessGrid = ({ searchQuery, category }: Props) => {
                 <div className="flex h-44 items-center justify-center bg-secondary"><Store className="h-10 w-10 text-muted-foreground" /></div>
               )}
               <div className="p-4">
-                <p className="text-xs font-medium text-primary">{b.category}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium text-primary">{b.category}</p>
+                  <div className="flex items-center gap-1">
+                    {b.is_featured && (
+                      <Badge variant="secondary" className="gap-0.5 px-1.5 py-0 text-[10px]">
+                        <Star className="h-2.5 w-2.5" /> Popular
+                      </Badge>
+                    )}
+                    {b.is_verified && (
+                      <Badge className="gap-0.5 px-1.5 py-0 text-[10px]">
+                        <BadgeCheck className="h-2.5 w-2.5" /> Verified
+                      </Badge>
+                    )}
+                  </div>
+                </div>
                 <h3 className="mt-0.5 font-semibold">{b.name}</h3>
                 <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{b.description}</p>
                 <div className="mt-3 space-y-1 text-xs text-muted-foreground">
