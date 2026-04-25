@@ -90,7 +90,8 @@ const AdminDashboard = () => {
   };
 
   const toggleFlag = async (b: DbBusiness, field: "is_featured" | "is_verified") => {
-    const { error } = await supabase.from("businesses").update({ [field]: !b[field] }).eq("id", b.id);
+    const update = field === "is_featured" ? { is_featured: !b.is_featured } : { is_verified: !b.is_verified };
+    const { error } = await supabase.from("businesses").update(update).eq("id", b.id);
     if (error) return toast({ title: error.message, variant: "destructive" });
     toast({ title: `${field === "is_featured" ? "Popular" : "Verified"} ${!b[field] ? "enabled" : "disabled"}` });
     refetch();
