@@ -7,7 +7,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ShieldCheck, Trash2, Plus, Pencil, UserCog, Store } from "lucide-react";
+import {
+  ArrowLeft, ShieldCheck, Trash2, Plus, Pencil, UserCog, Store, Inbox, Check, X, Star, BadgeCheck,
+} from "lucide-react";
 import BusinessForm from "@/components/BusinessForm";
 import Navbar from "@/components/Navbar";
 
@@ -18,10 +20,19 @@ interface UserRow {
   roles: string[];
 }
 
+interface VendorRequest {
+  id: string;
+  user_id: string;
+  note: string | null;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+}
+
 const AdminDashboard = () => {
   const { businesses, loading, refetch } = useDbBusinesses();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
+  const [requests, setRequests] = useState<VendorRequest[]>([]);
   const [editing, setEditing] = useState<DbBusiness | null>(null);
   const [adding, setAdding] = useState(false);
   const { toast } = useToast();
@@ -40,7 +51,23 @@ const AdminDashboard = () => {
     setUsersLoading(false);
   };
 
-  useEffect(() => { loadUsers(); }, []);
+  const loadRequests = async () => {
+    const { data } = await supabase
+      .from("vendor_requests")
+      .select("id, user_id, note, status, created_at")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+    setRequests((data as VendorRequest[]) ?? []);
+  };
+
+  useEffect(() => { loadUsers(); loadRequests(); }, []);
+
+  const reviewRequest = async (id: string, status: "approved" | "rejected") => {
+    const { error } = await supabase.from("vendor_requests").update({ status }).eq("id", id);
+    if (error) return toast({ title: error.message, variant: "destructive" });
+    toast({ title: status === "approved" ? "Vendor approved" : "Request rejected" });
+    loadRequests(); loadUsers();
+  };
 
   const promoteVendor = async (userId: string, isVendor: boolean) => {
     if (isVendor) {
@@ -62,6 +89,15 @@ const AdminDashboard = () => {
     else { toast({ title: "Deleted" }); refetch(); }
   };
 
+  const toggleFlag = async (b: DbBusiness, field: "is_featured" | "is_verified") => {
+    const { error } = await supabase.from("businesses").update({ [field]: !b[field] }).eq("id", b.id);
+    if (error) return toast({ title: error.message, variant: "destructive" });
+    toast({ title: `${field === "is_featured" ? "Popular" : "Verified"} ${!b[field] ? "enabled" : "disabled"}` });
+    refetch();
+  };
+
+  const userLookup = (uid: string) => users.find((u) => u.user_id === uid);
+
   return (
     <>
       <Navbar />
@@ -72,7 +108,39 @@ const AdminDashboard = () => {
         <h1 className="mb-1 flex items-center gap-2 text-2xl font-bold">
           <ShieldCheck className="h-6 w-6 text-primary" /> Admin Dashboard
         </h1>
-        <p className="mb-8 text-sm text-muted-foreground">Manage users and all business listings</p>
+        <p className="mb-8 text-sm text-muted-foreground">Manage users, vendor requests, and all business listings</p>
+
+        {/* Vendor Requests */}
+        <section className="mb-10">
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+            <Inbox className="h-5 w-5" /> Vendor Requests ({requests.length})
+          </h2>
+          <Card className="divide-y">
+            {requests.length === 0 && (
+              <p className="p-4 text-sm text-muted-foreground">No pending vendor requests.</p>
+            )}
+            {requests.map((r) => {
+              const u = userLookup(r.user_id);
+              return (
+                <div key={r.id} className="flex flex-wrap items-start gap-3 p-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{u?.display_name || u?.email || r.user_id.slice(0, 8)}</p>
+                    <p className="truncate text-xs text-muted-foreground">{u?.email}</p>
+                    {r.note && <p className="mt-1 text-sm text-muted-foreground">"{r.note}"</p>}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => reviewRequest(r.id, "approved")}>
+                      <Check className="mr-1 h-3 w-3" /> Approve
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => reviewRequest(r.id, "rejected")}>
+                      <X className="mr-1 h-3 w-3" /> Reject
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </Card>
+        </section>
 
         {/* Users */}
         <section className="mb-10">
@@ -122,9 +190,29 @@ const AdminDashboard = () => {
                   <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-secondary"><Store className="h-5 w-5 text-muted-foreground" /></div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{b.name}</p>
+                  <p className="truncate font-semibold">
+                    {b.name}
+                    {b.is_featured && <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-[10px]"><Star className="mr-0.5 h-2.5 w-2.5" />Popular</Badge>}
+                    {b.is_verified && <Badge className="ml-1 px-1.5 py-0 text-[10px]"><BadgeCheck className="mr-0.5 h-2.5 w-2.5" />Verified</Badge>}
+                  </p>
                   <p className="truncate text-xs text-muted-foreground">{b.category} · {b.location} · {b.contact}</p>
                 </div>
+                <Button
+                  size="sm"
+                  variant={b.is_featured ? "default" : "outline"}
+                  onClick={() => toggleFlag(b, "is_featured")}
+                  title="Toggle popular"
+                >
+                  <Star className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={b.is_verified ? "default" : "outline"}
+                  onClick={() => toggleFlag(b, "is_verified")}
+                  title="Toggle verified"
+                >
+                  <BadgeCheck className="h-3 w-3" />
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => setEditing(b)}><Pencil className="h-3 w-3" /></Button>
                 <Button size="sm" variant="outline" onClick={() => handleDelete(b.id)}><Trash2 className="h-3 w-3" /></Button>
               </Card>
