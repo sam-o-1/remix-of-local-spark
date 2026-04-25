@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDbBusinesses, type DbBusiness } from "@/hooks/useDbBusinesses";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, ArrowLeft, Store } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowLeft, Store, Clock } from "lucide-react";
 import BusinessForm from "@/components/BusinessForm";
 import Navbar from "@/components/Navbar";
 
@@ -16,7 +16,22 @@ const VendorDashboard = () => {
   const { businesses, loading, refetch } = useDbBusinesses(user?.id);
   const [editing, setEditing] = useState<DbBusiness | null>(null);
   const [adding, setAdding] = useState(false);
+  const [requestStatus, setRequestStatus] = useState<"pending" | "rejected" | null>(null);
   const { toast } = useToast();
+
+  const isVendor = role === "vendor" || role === "admin";
+
+  useEffect(() => {
+    if (!user || isVendor) return;
+    supabase
+      .from("vendor_requests")
+      .select("status")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.status === "pending" || data?.status === "rejected") setRequestStatus(data.status);
+      });
+  }, [user, isVendor]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this business?")) return;
@@ -24,8 +39,6 @@ const VendorDashboard = () => {
     if (error) toast({ title: error.message, variant: "destructive" });
     else { toast({ title: "Business deleted" }); refetch(); }
   };
-
-  const isVendor = role === "vendor" || role === "admin";
 
   return (
     <>
@@ -50,9 +63,19 @@ const VendorDashboard = () => {
 
         {!isVendor && (
           <Card className="p-6 text-center">
-            <p className="text-muted-foreground">
-              You need vendor access to add businesses. Please contact an admin to be promoted.
-            </p>
+            {requestStatus === "pending" ? (
+              <div className="flex flex-col items-center gap-2">
+                <Clock className="h-8 w-8 text-primary" />
+                <p className="font-medium">Vendor request pending</p>
+                <p className="text-sm text-muted-foreground">An admin will review your request shortly. You'll be able to add businesses once approved.</p>
+              </div>
+            ) : requestStatus === "rejected" ? (
+              <p className="text-muted-foreground">Your vendor request was not approved. Please contact an admin for details.</p>
+            ) : (
+              <p className="text-muted-foreground">
+                You need vendor access to add businesses. Sign up as a vendor or contact an admin.
+              </p>
+            )}
           </Card>
         )}
 
