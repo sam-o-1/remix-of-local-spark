@@ -23,6 +23,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_featured: boolean
+          is_verified: boolean
           location: string
           name: string
           owner_id: string
@@ -36,6 +37,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_featured?: boolean
+          is_verified?: boolean
           location: string
           name: string
           owner_id: string
@@ -49,6 +51,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_featured?: boolean
+          is_verified?: boolean
           location?: string
           name?: string
           owner_id?: string
@@ -104,6 +107,39 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_requests: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["vendor_request_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["vendor_request_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["vendor_request_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -119,6 +155,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "vendor" | "customer"
+      vendor_request_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -247,6 +284,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "vendor", "customer"],
+      vendor_request_status: ["pending", "approved", "rejected"],
     },
   },
 } as const

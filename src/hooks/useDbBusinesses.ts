@@ -11,6 +11,7 @@ export interface DbBusiness {
   description: string | null;
   image_url: string | null;
   is_featured: boolean;
+  is_verified: boolean;
   created_at: string;
   updated_at: string;
 }
